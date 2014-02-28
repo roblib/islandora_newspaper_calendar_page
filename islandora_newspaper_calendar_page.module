@@ -1,0 +1,427 @@
+<?php
+/**
+ * @file
+ * Hooks and callbacks for this module.
+ */
+function islandora_newspaper_calendar_page_menu() {
+  $items = array();
+
+
+  $items['islandora/object/%islandora_object/newspaper_calendar'] = array(
+    'weight' => -3,
+    'title' => t('Calendar'),
+    'page callback' => 'islandora_newspaper_calendar_page_view',
+    'page arguments' => array(2),
+    'type' => MENU_LOCAL_TASK,
+    'access callback' => 'islandora_newspaper_calendar_page_access',
+    'access arguments' => array(2),
+  );
+
+
+
+  // HYBRID TRY
+
+  /*
+  $items['islandora/object/%islandora_object/newspaper_calendar'] = array(
+    'weight' => -3,
+    'title' => t('Calendar'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('islandora_newspaper_calendar_page_form'),
+    'type' => MENU_CALLBACK,
+    'access callback' => 'islandora_newspaper_calendar_page_access',
+    //'access arguments' => array(2),
+  );
+  */
+
+
+
+
+  /*
+  // Form item.
+  $items['islandora_newspaper_calendar_page_form'] = array(
+  //$items['islandora/object/%islandora_object/islandora_newspaper_calendar_page_form'] = array(
+    'title' => t('Calendar'),
+    'description' => t('Calendar view of newspaper issues.'),
+    'type' => MENU_CALLBACK,
+    //'type' => MENU_LOCAL_TASK,
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('islandora_newspaper_calendar_page_form'),
+    //'access callback' => TRUE,
+  );
+  */
+
+  return $items;
+}
+
+/**
+ * Determines whether or not to show this modules tab.
+ *
+ * @global object $user
+ * @param FedoraObject $fedora_object
+ * @return boolean
+ */
+function islandora_newspaper_calendar_page_access($fedora_object) {
+  if (!isset($fedora_object)) {
+    return FALSE;
+  }
+
+  $models = $fedora_object->models;
+
+  // Show tab if MODS datastream exists and has newspaperCModel relationship.
+  if (isset($fedora_object['MODS']) AND in_array("islandora:newspaperCModel", $models, TRUE)) {
+    return TRUE;
+  }
+
+  return FALSE;
+}
+
+/**
+ * Theme registry function.
+ *
+ * @param $existing
+ * @param $type
+ * @param $theme
+ * @param $path
+ * @return array
+ */
+/*
+function islandora_newspaper_calendar_page_theme($existing, $type, $theme, $path) {
+  return array(
+    'islandora_newspaper_calendar_page_view' => array(
+      'template' => 'theme/islandora-newspaper-calendar-page',
+      'variables' => array('islandora_objects' => NULL),
+    ),
+  );
+}
+*/
+
+/**
+ * The newspaper calendar page view.
+ *
+ * @param FedoraObject $object
+ * @return string
+ */
+function islandora_newspaper_calendar_page_view($object) {
+ // $output = theme('islandora_newspaper_calendar_page_view', array('islandora_object' => $object));
+  $output = drupal_get_form('islandora_newspaper_calendar_page_form', $object);
+  /*
+  return array(
+    'newspaper_calendar' => drupal_render($output),
+  );
+  */
+
+  return drupal_render($output);
+}
+
+/**
+ * Preprocess hook.
+ *
+ * @param array $variables
+ * @global string $base_url
+ */
+/*
+function islandora_newspaper_calendar_page_preprocess_islandora_newspaper_calendar_page_view(&$variables) {
+
+  $islandora_object = $variables['islandora_object'];
+
+  drupal_set_title("Newspaper Issues");
+
+  $output = drupal_get_form('islandora_newspaper_calendar_page_form', $islandora_object);
+  //$output['object'] = $newspaper;
+  return array(
+    //'islandora_newspaper' => drupal_render($output),
+    'newspaper_calendar' => drupal_render($output),
+
+    //'object' => $newspaper
+  );
+}
+*/
+
+
+function islandora_newspaper_calendar_page_form($form, &$form_state, $object) {
+
+  global $base_url;
+
+  drupal_set_title("Newspaper Issues Calendar");
+  //$form['text'] = array('#markup' => "Form is displayed!");
+
+  //echo "form state:";
+  //dpr($form_state);
+
+  //echo $object->id;
+  //dpr($real_object);
+
+
+
+
+
+
+  $form_state['object'] = $object->id;
+
+  if(! isset($form_state['year_selected'])) {
+
+    $all_issues = islandora_newspaper_get_issues($object);
+    $all_grouped_issues = islandora_newspaper_group_issues($all_issues);
+
+
+
+    if($all_issues) {
+
+      foreach($all_grouped_issues as $year => $month_data)
+        $available_years[$year] = $year;
+
+      $form_state['available_years'] = $available_years;
+
+      //dpr($available_years);
+
+      $form = select_issue_year($form, $form_state);
+    }
+
+    else
+      $form['no_issues'] = array('#markup' => "Newspaper issues not found.");
+  }
+
+  if(isset($form_state['year_selected']))
+    if($form_state['year_selected'] == TRUE) {
+
+      if(!isset($form_state['issue_selected'])) {
+
+        //drupal_set_message("Year selected.");
+
+        $issues = islandora_newspaper_get_year_issues($object, $form_state['values']['issue_years']);
+        $grouped_issues = islandora_newspaper_group_issues($issues);
+
+        $newspaper_issue_dates = array();
+
+        if($grouped_issues) {
+
+          $ctr = 0;
+          foreach($grouped_issues as $year => $month_data) {
+            $available_years[] = $year;
+
+            foreach($month_data as $month => $day_data)
+
+              foreach($day_data as $day => $data) {
+                $newspaper_issue_dates[$data['pid']] = $year . "-" . $month . "-" . $day;
+                //$newspaper_issue_dates[$data['pid']] = date('Y-m-d', $year . "-" . $month . "-" . $day);
+                $ctr++;
+              }
+          }
+
+          $form_state['newspaper_issue_dates'] = $newspaper_issue_dates;
+        }
+      }
+
+      if($form_state['view_choice'] == 1) {
+
+        // ISSUES DROP DOWN
+        $form['issues'] = array(
+          '#type' => 'select',
+          '#options' => $form_state['newspaper_issue_dates'],
+          '#title' => t('Issues'),
+          '#prefix' => '',
+          '#suffix' => ''
+        );
+
+        // SUBMIT BUTTON
+        $form['subIssueButton'] = array(
+          '#type' => 'button',
+          '#executes_subit_callback' => FALSE,
+          '#value' => t('Select Issue'),
+          '#validate' => array('get_issue'),
+          '#prefix' => '',
+          '#suffix' => ''
+        );
+      }
+
+      else {
+
+        //$form['calendar_show'] = array('#markup' => "<h2>" . $form_state['values']['issue_years'] . "</h2>");
+
+        $ctr = 1;
+        foreach($newspaper_issue_dates as $pid => $issue_date) {
+
+          $issue_year = date('Y', strtotime($issue_date));
+
+          // quick fix for query bringing back more than 1 year...  clean up if query is fixed
+          if(!isset($first_year))
+            $first_year = date('Y', strtotime($issue_date));
+
+          if($issue_year == $first_year) {
+
+            //$issue_year = date('Y', strtotime($issue_date));
+            $issue_month = date('n', strtotime($issue_date));
+            $issue_day = date('j', strtotime($issue_date));
+            $issue_pids[$issue_year][$issue_month][$issue_day] = $pid;
+          }
+        }
+
+
+        // CALENDAR VIEW
+        //This gets today's date
+        //$date = time() ;
+
+        //This puts the day, month, and year in separate variables
+        //$day = date('d', $date) ;
+        //$month = date('m', $date) ;
+        //$year = date('Y', $date) ;
+
+        //dpr($issue_pids);
+
+
+
+
+
+
+
+
+
+
+
+
+
+        $form['new_cal'][] = array('#markup' => "<div class = \"outter\"><table><tr><td class = \"cal-block\">");
+
+        //foreach($issue_pids as $the_year => $months) {
+        $year = $first_year;
+
+        for($ctr = 1; $ctr <= 12; $ctr++) {
+
+          //foreach($months as $the_month => $days) {
+          //$month = $the_month;
+
+          $month = $ctr;
+
+          //$day = $issue_day;
+
+          //Here we generate the first day of the month
+          $first_day = mktime(0,0,0,$month, 1, $year) ;
+
+          //This gets us the month name
+          $title = date('F', $first_day) ;
+
+          //Here we find out what day of the week the first day of the month falls on
+          $day_of_week = date('D', $first_day) ;
+
+          //Once we know what day of the week it falls on, we know how many blank days occur before it.
+          //If the first day of the week is a Sunday then it would be zero
+          switch($day_of_week){
+
+            case "Sun":
+              $blank = 0;
+              break;
+            case "Mon":
+              $blank = 1;
+              break;
+            case "Tue":
+              $blank = 2;
+              break;
+            case "Wed":
+              $blank = 3;
+              break;
+            case "Thu":
+              $blank = 4;
+              break;
+            case "Fri":
+              $blank = 5;
+              break;
+            case "Sat":
+              $blank = 6;
+              break;
+          }
+          //We then determine how many days are in the current month
+          $days_in_month = cal_days_in_month(0, $month, $year) ;
+
+          //Here we start building the table heads
+          $new_cal = "<div class = \"cal\"><table>
+                            <tr>
+                              <th colspan=7> $title $year </th>
+                            </tr>
+                            <tr>
+                              <td>S</td>
+                              <td>M</td>
+                              <td>T</td>
+                              <td>W</td>
+                              <td>T</td>
+                              <td>F</td>
+                              <td>S</td>
+                            </tr>";
+
+          //This counts the days in the week, up to 7
+          $day_count = 1;
+
+          $new_cal .= "<tr>";
+
+          //first we take care of those blank days
+          while ( $blank > 0 )
+          {
+            $new_cal .= "<td></td>";
+            $blank = $blank-1;
+            $day_count++;
+          }
+
+          //sets the first day of the month to 1
+          $day_num = 1;
+
+          //count up the days, until we've done all of them in the month
+          while ( $day_num <= $days_in_month )
+          {
+            // new 3 lines are working as expected
+            //if(array_key_exists($month, $months))
+            //if(array_key_exists($day_num, $months[$month]))
+            //$new_cal .= "<td><a href=" . $base_url . "/islandora/object/" . $months[$month][$day_num] . "> $day_num </a></td>";
+
+            //testing new way
+            if(array_key_exists($month, $issue_pids[$year]))
+              if(array_key_exists($day_num, $issue_pids[$year][$month]))
+                $new_cal .= "<td><a href=" . $base_url . "/islandora/object/" . $issue_pids[$year][$month][$day_num] . "> $day_num </a></td>";
+              else
+                $new_cal .= "<td> $day_num </td>";
+            else
+              $new_cal .= "<td> $day_num </td>";
+
+
+            $day_num++;
+            $day_count++;
+
+            //Make sure we start a new row every week
+            if ($day_count > 7)
+            {
+
+              $new_cal .= "</tr><tr>";
+              $day_count = 1;
+            }
+          }
+
+          //Finally we finish out the table with some blank details if needed
+          while ( $day_count >1 && $day_count <=7 )
+          {
+            $new_cal .= "<td> </td>";
+            $day_count++;
+          }
+
+          $new_cal .= "</tr></table></div>";
+
+          $form['new_cal'][] = array('#markup' => $new_cal);
+
+          if($ctr == 4 OR $ctr == 8)
+            $form['new_cal'][] = array('#markup' => "</td></tr><tr><td class = \"cal-block\">");
+          elseif($ctr == 12)
+            $form['new_cal'][] = array('#markup' => "</td></tr>");
+          else
+            $form['new_cal'][] = array('#markup' => "</td><td class = \"cal-block\">");
+        }
+        //}
+
+        $form['new_cal'][] = array('#markup' => "</td></tr></table></div>");
+      }
+
+      if(isset($form_state['issue_selected']))
+        drupal_set_message("Issue selected.");
+    }
+
+  //dpr($form);
+
+
+  return $form;
+}

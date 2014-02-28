@@ -1,0 +1,9 @@
+name = Islandora Newspaper Calendar Page
+description = Adds 'Calendar' tab as an alternate view for displaying available newspaper issues.
+package = Islandora
+core = 7.x
+version = 7.x-1.0
+dependencies[] = islandora
+dependencies[] = islandora_newspaper
+dependencies[] = islandora_solr
+stylesheets[all][] = css/islandora_newspaper_calendar_page.css
