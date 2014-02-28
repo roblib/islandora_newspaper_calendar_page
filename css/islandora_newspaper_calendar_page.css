@@ -1,0 +1,39 @@
+.cal-controls {
+
+  float:right;
+}
+
+
+
+.outside {
+  border:5px solid red;
+}
+
+
+.outter {
+ border: 3px solid blue;
+ width:100%;
+
+}
+
+
+.cal-block {
+  border: 2px solid yellow;
+  vertical-align:top;
+}
+
+.cal-block table {
+
+}
+
+.cal-block td {
+  width:25%;
+}
+
+.cal {
+  /*border:3px solid limegreen;*/
+}
+
+.cal table {
+
+}

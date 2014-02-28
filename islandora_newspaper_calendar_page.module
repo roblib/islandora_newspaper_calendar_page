@@ -151,13 +151,13 @@ function islandora_newspaper_calendar_page_form($form, &$form_state, $object) {
   //echo $object->id;
   //dpr($real_object);
 
-
-
-
-
-
   $form_state['object'] = $object->id;
+  $form_state['year_selected'] = TRUE;
 
+
+
+
+  /*
   if(! isset($form_state['year_selected'])) {
 
     $all_issues = islandora_newspaper_get_issues($object);
@@ -180,9 +180,37 @@ function islandora_newspaper_calendar_page_form($form, &$form_state, $object) {
     else
       $form['no_issues'] = array('#markup' => "Newspaper issues not found.");
   }
+  */
 
   if(isset($form_state['year_selected']))
     if($form_state['year_selected'] == TRUE) {
+
+      // added here for select control even on calendar page
+      //$form = select_issue_year($form, $form_state);
+
+      $all_issues = islandora_newspaper_get_issues($object);
+      $all_grouped_issues = islandora_newspaper_group_issues($all_issues);
+
+      if($all_issues) {
+
+        foreach($all_grouped_issues as $year => $month_data)
+          $available_years[$year] = $year;
+
+        $form_state['available_years'] = $available_years;
+
+        //dpr($available_years);
+
+        $form = select_issue_year($form, $form_state);
+      }
+
+      else
+        $form['no_issues'] = array('#markup' => "Newspaper issues not found.");
+
+
+
+
+
+
 
       if(!isset($form_state['issue_selected'])) {
 
@@ -212,7 +240,7 @@ function islandora_newspaper_calendar_page_form($form, &$form_state, $object) {
         }
       }
 
-      if($form_state['view_choice'] == 1) {
+      //if($form_state['view_choice'] == 1) {
 
         // ISSUES DROP DOWN
         $form['issues'] = array(
@@ -232,9 +260,9 @@ function islandora_newspaper_calendar_page_form($form, &$form_state, $object) {
           '#prefix' => '',
           '#suffix' => ''
         );
-      }
+      //}
 
-      else {
+      //else {
 
         //$form['calendar_show'] = array('#markup' => "<h2>" . $form_state['values']['issue_years'] . "</h2>");
 
@@ -280,7 +308,7 @@ function islandora_newspaper_calendar_page_form($form, &$form_state, $object) {
 
 
 
-        $form['new_cal'][] = array('#markup' => "<div class = \"outter\"><table><tr><td class = \"cal-block\">");
+        $form['new_cal'][] = array('#markup' => "<div class = \"outside\"><table class = \"outter\"><tr><td class = \"cal-block\">");
 
         //foreach($issue_pids as $the_year => $months) {
         $year = $first_year;
@@ -414,7 +442,7 @@ function islandora_newspaper_calendar_page_form($form, &$form_state, $object) {
         //}
 
         $form['new_cal'][] = array('#markup' => "</td></tr></table></div>");
-      }
+      //}
 
       if(isset($form_state['issue_selected']))
         drupal_set_message("Issue selected.");
@@ -424,4 +452,68 @@ function islandora_newspaper_calendar_page_form($form, &$form_state, $object) {
 
 
   return $form;
+}
+
+function select_issue_year($form, &$form_state) {
+
+
+  $issue_years = array(
+    '#type' => 'select',
+    '#title' => t('Year'),
+    '#options' => $form_state['available_years'],
+    '#default_value' => 0,
+    //'#prefix' => '<div class = "cal-controls"><table><tr><td width = 90% align = right>',
+    '#prefix' => '<div class = "cal-controls">',
+    //'#suffix' => '</td>',
+    //'#ajax' => array(
+    //  'callback' => 'ajax_test',
+    //  'wrapper' => 'ajax-wrapper',
+    //  'method' => 'replace',
+    //  'effect' => 'fade'
+    //),
+  );
+
+  // SUBMIT BUTTON
+  $calendar_button = array(
+    '#type' => 'button',
+    '#executes_subit_callback' => FALSE,
+    '#value' => t('Select'),
+    '#validate' => array('get_issues'),
+    //'#prefix' => '<td width = 10% align = right>',
+    //'#suffix' => '</td></tr></table></div>'
+    '#suffix' => '</div>'
+  );
+
+  $form['container'] = array(
+    '#prefix' => '<div class="container-inline">',
+    'child_element_1' => $issue_years,
+    'child_element_2' => $calendar_button,
+    '#suffix' => '</div>',
+  );
+
+
+  return $form;
+}
+
+function get_issues($form, &$form_state) {
+
+  //dpr($form);
+
+  $form_state['year_selected'] = TRUE;
+
+  if($form_state['values']['op'] == "Show drop down list of issues")
+    $form_state['view_choice'] = 1;
+  else
+    $form_state['view_choice'] = 2;
+
+
+}
+
+function get_issue($form, &$form_state) {
+
+  global $base_url;
+
+  $form_state['issue_selected'] = TRUE;
+  drupal_goto($base_url . "/islandora/object/" . $form_state['values']['issues']);
+
 }
