@@ -240,7 +240,7 @@ function islandora_newspaper_calendar_page_form($form, &$form_state, $object) {
         }
       }
 
-      //if($form_state['view_choice'] == 1) {
+      if($form_state['view_choice'] == 1) {
 
         // ISSUES DROP DOWN
         $form['issues'] = array(
@@ -260,9 +260,9 @@ function islandora_newspaper_calendar_page_form($form, &$form_state, $object) {
           '#prefix' => '',
           '#suffix' => ''
         );
-      //}
+      }
 
-      //else {
+      else {
 
         //$form['calendar_show'] = array('#markup' => "<h2>" . $form_state['values']['issue_years'] . "</h2>");
 
@@ -442,7 +442,7 @@ function islandora_newspaper_calendar_page_form($form, &$form_state, $object) {
         //}
 
         $form['new_cal'][] = array('#markup' => "</td></tr></table></div>");
-      //}
+      }
 
       if(isset($form_state['issue_selected']))
         drupal_set_message("Issue selected.");
@@ -457,7 +457,14 @@ function islandora_newspaper_calendar_page_form($form, &$form_state, $object) {
 function select_issue_year($form, &$form_state) {
 
 
-  $issue_years = array(
+  $form['container'] = array(
+    '#type' => 'container',
+    '#attributes' => array(
+      'class' => array('container-inline'),
+    ),
+  );
+
+  $form['container']['issue_years'] = array(
     '#type' => 'select',
     '#title' => t('Year'),
     '#options' => $form_state['available_years'],
@@ -474,7 +481,7 @@ function select_issue_year($form, &$form_state) {
   );
 
   // SUBMIT BUTTON
-  $calendar_button = array(
+  $form['container']['calendar_button'] = array(
     '#type' => 'button',
     '#executes_subit_callback' => FALSE,
     '#value' => t('Select'),
@@ -484,12 +491,15 @@ function select_issue_year($form, &$form_state) {
     '#suffix' => '</div>'
   );
 
+
+  /*
   $form['container'] = array(
     '#prefix' => '<div class="container-inline">',
-    'child_element_1' => $issue_years,
-    'child_element_2' => $calendar_button,
+    'child_element_1' => $form['issue_years'],
+    'child_element_2' => $form['calendar_button'],
     '#suffix' => '</div>',
   );
+  */
 
 
   return $form;
