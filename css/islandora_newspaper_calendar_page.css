@@ -20,7 +20,7 @@
 }
 
 .cal-block {
-  border:1px solid black;
+  /*border:1px solid black;*/
   padding:1px;
   /*position:relative;*/
   float:left;
@@ -29,7 +29,7 @@
   /*width:100%;*/
   /*background-color:#dddddd;*/
   width:24%;
-  height:278px;
+  /*height:320px;*/
 
 }
 
@@ -44,7 +44,7 @@
 }
 
 .cal-row-block {
-  border:1px solid #dddddd;
+  /*border:1px solid #dddddd;*/
   padding:1px;
   /*position:relative;*/
   text-align:center;
@@ -96,7 +96,7 @@
 
 .day-issue-block {
 
-  border:1px solid red;
+  border:1px solid black;
   float:left;
   padding:5px;
   margin:1px;
@@ -120,7 +120,7 @@
 
   text-align:center;
   width:8.25%;
-  color: #dddddd;
+  color: grey;
 
 
 }

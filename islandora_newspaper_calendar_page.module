@@ -141,46 +141,94 @@ function islandora_newspaper_calendar_page_preprocess_islandora_newspaper_calend
 function islandora_newspaper_calendar_page_form($form, &$form_state, $object) {
 
   global $base_url;
-
+  module_load_include('inc', 'islandora_newspaper', 'includes/utilities');
   drupal_set_title("Newspaper Issues Calendar");
-  //$form['text'] = array('#markup' => "Form is displayed!");
 
-  //echo "form state:";
-  //dpr($form_state);
+/************DIV TABLES  */
+  $all_issues = islandora_newspaper_get_issues($object);
+  $all_grouped_issues = islandora_newspaper_group_issues($all_issues);
 
-  //echo $object->id;
-  //dpr($real_object);
-
-  $form_state['object'] = $object->id;
-  $form_state['year_selected'] = TRUE;
-
-
-
-
-  /*
-  if(! isset($form_state['year_selected'])) {
-
-    $all_issues = islandora_newspaper_get_issues($object);
-    $all_grouped_issues = islandora_newspaper_group_issues($all_issues);
-
-
-
-    if($all_issues) {
-
-      foreach($all_grouped_issues as $year => $month_data)
-        $available_years[$year] = $year;
+  if($all_issues) {
+    foreach($all_grouped_issues as $year => $month_data) {
+      //default to earliest newspaper issue year found
+      if(!isset($form_state['selected_year']))
+        $form_state['selected_year'] = $form_state['values']['issue_years'] = $year;
+      $available_years[$year] = $year;
+    }
 
       $form_state['available_years'] = $available_years;
 
-      //dpr($available_years);
+
+      //if(!isset($form_state['selected_year']))
+      //  $form_state['selected_year'] = $available_years[0];
 
       $form = select_issue_year($form, $form_state);
+    //dpr($available_years);
     }
 
-    else
-      $form['no_issues'] = array('#markup' => "Newspaper issues not found.");
-  }
-  */
+  else
+    $form['no_issues'] = array('#markup' => "Newspaper issues not found.");
+
+
+  //if(!isset($form_state['issue_selected'])) {
+
+    //echo "year: " . $form_state['values']['issue_years'];
+
+
+
+
+    //$issues = islandora_newspaper_get_year_issues($object, $form_state['values']['issue_years']);
+    //$grouped_issues = islandora_newspaper_group_issues($issues);
+
+
+
+
+
+
+    $issues_solr = islandora_newspaper_get_solr_year_issues($object, $form_state['values']['issue_years']);
+
+
+    //dpr($grouped_issues);
+    //dpr($issues_solr);
+
+
+    //format solr results
+
+  foreach($issues_solr['response']['docs'] as $key => $solr_data) {
+
+    $solr_date = date("Y-m-d H:i:s", strtotime($solr_data['RELS_EXT_dateIssued_literal_ms'][0] . '+ 5 hours', $now = time()));
+
+    //date("Y-m-d", strtotime("+30 minutes"))
+
+    //$solr_month = date("m", date("Y-m-d H:i:s", strtotime($solr_data['RELS_EXT_dateIssued_literal_ms'][0] . '+ 5 hours', $now = time())));
+    //$solr_day = date("d", $solr_date);
+
+    $solr_year = date("Y", strtotime($solr_date, $now = time()));
+    $solr_month = date("m", strtotime($solr_date, $now = time()));
+    $solr_day = date("d", strtotime($solr_date, $now = time()));
+
+
+
+
+    //$solr_month = date("m", strtotime($solr_data['RELS_EXT_dateIssued_literal_ms'][0], $now = time()));
+    //$solr_day = date("d", strtotime($solr_data['RELS_EXT_dateIssued_literal_ms'][0], $now = time()));
+
+
+    //date("Y/m/d", $timestamp)
+
+    //$solr_month = date("m", $solr_data['mods_originInfo_dateIssued_dt']);
+    //$solr_day = date("d", $solr_data['mods_originInfo_dateIssued_dt']);
+
+    //echo $solr_month . "<br/>";
+    //echo $solr_day . "<br/>";
+
+    //echo $solr_date . "<br/>";
+
+    $newspaper_issue_dates[$solr_data['PID']] = $solr_year . "-" . $solr_month . "-" . $solr_day;
+
+
+
+    }
 
 
 
@@ -190,369 +238,28 @@ function islandora_newspaper_calendar_page_form($form, &$form_state, $object) {
 
 
 
+/*
+    $newspaper_issue_dates = array();
 
-/**** TABLE CAL BEGINS ****/
-    /*
-    if(isset($form_state['year_selected']))
-    if($form_state['year_selected'] == TRUE) {
+    if($grouped_issues) {
 
-      // added here for select control even on calendar page
-      //$form = select_issue_year($form, $form_state);
+      foreach($grouped_issues as $year => $month_data) {
+        //$available_years[] = $year;
 
-      $all_issues = islandora_newspaper_get_issues($object);
-      $all_grouped_issues = islandora_newspaper_group_issues($all_issues);
-
-      if($all_issues) {
-
-        foreach($all_grouped_issues as $year => $month_data)
-          $available_years[$year] = $year;
-
-        $form_state['available_years'] = $available_years;
-
-        //dpr($available_years);
-
-        $form = select_issue_year($form, $form_state);
+        foreach($month_data as $month => $day_data) {
+          foreach($day_data as $day => $data) {
+            //echo "pid:" . $data[0]['pid'];
+            $newspaper_issue_dates[$data[0]['pid']] = $year . "-" . $month . "-" . $day;
+          }
+        }
       }
 
-      else
-        $form['no_issues'] = array('#markup' => "Newspaper issues not found.");
-
-
-      if(!isset($form_state['issue_selected'])) {
-
-        //drupal_set_message("Year selected.");
-
-        $issues = islandora_newspaper_get_year_issues($object, $form_state['values']['issue_years']);
-        $grouped_issues = islandora_newspaper_group_issues($issues);
-
-        $newspaper_issue_dates = array();
-
-        if($grouped_issues) {
-
-          $ctr = 0;
-          foreach($grouped_issues as $year => $month_data) {
-            $available_years[] = $year;
-
-            foreach($month_data as $month => $day_data)
-
-              foreach($day_data as $day => $data) {
-                $newspaper_issue_dates[$data['pid']] = $year . "-" . $month . "-" . $day;
-                //$newspaper_issue_dates[$data['pid']] = date('Y-m-d', $year . "-" . $month . "-" . $day);
-                $ctr++;
-              }
-          }
-
-          $form_state['newspaper_issue_dates'] = $newspaper_issue_dates;
-        }
-      }
-
-      if($form_state['view_choice'] == 1) {
-
-        // ISSUES DROP DOWN
-        $form['issues'] = array(
-          '#type' => 'select',
-          '#options' => $form_state['newspaper_issue_dates'],
-          '#title' => t('Issues'),
-          '#prefix' => '',
-          '#suffix' => ''
-        );
-
-        // SUBMIT BUTTON
-        $form['subIssueButton'] = array(
-          '#type' => 'button',
-          '#executes_subit_callback' => FALSE,
-          '#value' => t('Select Issue'),
-          '#validate' => array('get_issue'),
-          '#prefix' => '',
-          '#suffix' => ''
-        );
-      }
-
-      else {
-
-        //$form['calendar_show'] = array('#markup' => "<h2>" . $form_state['values']['issue_years'] . "</h2>");
-
-        $ctr = 1;
-        foreach($newspaper_issue_dates as $pid => $issue_date) {
-
-          $issue_year = date('Y', strtotime($issue_date));
-
-          // quick fix for query bringing back more than 1 year...  clean up if query is fixed
-          if(!isset($first_year))
-            $first_year = date('Y', strtotime($issue_date));
-
-          if($issue_year == $first_year) {
-
-            //$issue_year = date('Y', strtotime($issue_date));
-            $issue_month = date('n', strtotime($issue_date));
-            $issue_day = date('j', strtotime($issue_date));
-            $issue_pids[$issue_year][$issue_month][$issue_day] = $pid;
-          }
-        }
-
-
-        // CALENDAR VIEW
-        //This gets today's date
-        //$date = time() ;
-
-        //This puts the day, month, and year in separate variables
-        //$day = date('d', $date) ;
-        //$month = date('m', $date) ;
-        //$year = date('Y', $date) ;
-
-        //dpr($issue_pids);
-
-
-
-
-
-
-
-
-
-
-
-
-
-        $form['new_cal'][] = array('#markup' => "<div class = \"outside\"><table class = \"outter\"><tr><td class = \"cal-block\">");
-
-        //foreach($issue_pids as $the_year => $months) {
-        $year = $first_year;
-
-        for($ctr = 1; $ctr <= 12; $ctr++) {
-
-          //foreach($months as $the_month => $days) {
-          //$month = $the_month;
-
-          $month = $ctr;
-
-          //$day = $issue_day;
-
-          //Here we generate the first day of the month
-          $first_day = mktime(0,0,0,$month, 1, $year) ;
-
-          //This gets us the month name
-          $title = date('F', $first_day) ;
-
-          //Here we find out what day of the week the first day of the month falls on
-          $day_of_week = date('D', $first_day) ;
-
-          //Once we know what day of the week it falls on, we know how many blank days occur before it.
-          //If the first day of the week is a Sunday then it would be zero
-          switch($day_of_week){
-
-            case "Sun":
-              $blank = 0;
-              break;
-            case "Mon":
-              $blank = 1;
-              break;
-            case "Tue":
-              $blank = 2;
-              break;
-            case "Wed":
-              $blank = 3;
-              break;
-            case "Thu":
-              $blank = 4;
-              break;
-            case "Fri":
-              $blank = 5;
-              break;
-            case "Sat":
-              $blank = 6;
-              break;
-          }
-          //We then determine how many days are in the current month
-          $days_in_month = cal_days_in_month(0, $month, $year) ;
-
-          //Here we start building the table heads
-          $new_cal = "<div class = \"cal\"><table>
-                            <tr>
-                              <th colspan=7> $title $year </th>
-                            </tr>
-                            <tr>
-                              <td>S</td>
-                              <td>M</td>
-                              <td>T</td>
-                              <td>W</td>
-                              <td>T</td>
-                              <td>F</td>
-                              <td>S</td>
-                            </tr>";
-
-          //This counts the days in the week, up to 7
-          $day_count = 1;
-
-          $new_cal .= "<tr>";
-
-          //first we take care of those blank days
-          while ( $blank > 0 )
-          {
-            $new_cal .= "<td></td>";
-            $blank = $blank-1;
-            $day_count++;
-          }
-
-          //sets the first day of the month to 1
-          $day_num = 1;
-
-          //count up the days, until we've done all of them in the month
-          while ( $day_num <= $days_in_month )
-          {
-            // new 3 lines are working as expected
-            //if(array_key_exists($month, $months))
-            //if(array_key_exists($day_num, $months[$month]))
-            //$new_cal .= "<td><a href=" . $base_url . "/islandora/object/" . $months[$month][$day_num] . "> $day_num </a></td>";
-
-            //testing new way
-            if(array_key_exists($month, $issue_pids[$year]))
-              if(array_key_exists($day_num, $issue_pids[$year][$month]))
-                $new_cal .= "<td><a href=" . $base_url . "/islandora/object/" . $issue_pids[$year][$month][$day_num] . "> $day_num </a></td>";
-              else
-                $new_cal .= "<td> $day_num </td>";
-            else
-              $new_cal .= "<td> $day_num </td>";
-
-
-            $day_num++;
-            $day_count++;
-
-            //Make sure we start a new row every week
-            if ($day_count > 7)
-            {
-
-              $new_cal .= "</tr><tr>";
-              $day_count = 1;
-            }
-          }
-
-          //Finally we finish out the table with some blank details if needed
-          while ( $day_count >1 && $day_count <=7 )
-          {
-            $new_cal .= "<td> </td>";
-            $day_count++;
-          }
-
-          $new_cal .= "</tr></table></div>";
-
-          $form['new_cal'][] = array('#markup' => $new_cal);
-
-          if($ctr == 4 OR $ctr == 8)
-            $form['new_cal'][] = array('#markup' => "</td></tr><tr><td class = \"cal-block\">");
-          elseif($ctr == 12)
-            $form['new_cal'][] = array('#markup' => "</td></tr>");
-          else
-            $form['new_cal'][] = array('#markup' => "</td><td class = \"cal-block\">");
-        }
-        //}
-
-        $form['new_cal'][] = array('#markup' => "</td></tr></table></div>");
-      }
-
-    */
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/************DIV TABLES  */
-
-      if($form_state['year_selected'] == TRUE) {
-
-        // added here for select control even on calendar page
-        //$form = select_issue_year($form, $form_state);
-
-        $all_issues = islandora_newspaper_get_issues($object);
-        $all_grouped_issues = islandora_newspaper_group_issues($all_issues);
-
-        if($all_issues) {
-
-          foreach($all_grouped_issues as $year => $month_data)
-            $available_years[$year] = $year;
-
-          $form_state['available_years'] = $available_years;
-
-          //dpr($available_years);
-
-          $form = select_issue_year($form, $form_state);
-        }
-
-        else
-          $form['no_issues'] = array('#markup' => "Newspaper issues not found.");
-
-
-
-
-
-
-
-        if(!isset($form_state['issue_selected'])) {
-
-          //drupal_set_message("Year selected.");
-
-          $issues = islandora_newspaper_get_year_issues($object, $form_state['values']['issue_years']);
-          $grouped_issues = islandora_newspaper_group_issues($issues);
-
-          $newspaper_issue_dates = array();
-
-
-          if($grouped_issues) {
-
-            $ctr = 0;
-            foreach($grouped_issues as $year => $month_data) {
-              $available_years[] = $year;
-
-              foreach($month_data as $month => $day_data)
-
-                foreach($day_data as $day => $data) {
-                  $newspaper_issue_dates[$data['pid']] = $year . "-" . $month . "-" . $day;
-                  //$newspaper_issue_dates[$data['pid']] = date('Y-m-d', $year . "-" . $month . "-" . $day);
-                  $ctr++;
-                }
-            }
-
-            $form_state['newspaper_issue_dates'] = $newspaper_issue_dates;
-          }
-        }
-
-
-        //dpr($newspaper_issue_dates);
-
+      //can be used for issue dates drop down
+      //$form_state['newspaper_issue_dates'] = $newspaper_issue_dates;
+    }
+  //}
+*/
+    //dpr($newspaper_issue_dates);
 
         /*
         if($form_state['view_choice'] == 1) {
@@ -582,7 +289,8 @@ function islandora_newspaper_calendar_page_form($form, &$form_state, $object) {
 
           //$form['calendar_show'] = array('#markup' => "<h2>" . $form_state['values']['issue_years'] . "</h2>");
 
-          $ctr = 1;
+
+          //$ctr = 1;
           foreach($newspaper_issue_dates as $pid => $issue_date) {
 
             $issue_year = date('Y', strtotime($issue_date));
@@ -611,17 +319,6 @@ function islandora_newspaper_calendar_page_form($form, &$form_state, $object) {
           //$year = date('Y', $date) ;
 
           //dpr($issue_pids);
-
-
-
-
-
-
-
-
-
-
-
 
 
           $form['new_cal'][] = array('#markup' =>
@@ -767,13 +464,10 @@ function islandora_newspaper_calendar_page_form($form, &$form_state, $object) {
           $form['new_cal'][] = array('#markup' => "</div></div></div>");
 
         //}
-      }
+      //}
 
       //if(isset($form_state['issue_selected']))
         //drupal_set_message("Issue selected.");
-    //}
-
-  //dpr($form);
 
 
   return $form;
@@ -793,15 +487,15 @@ function select_issue_year($form, &$form_state) {
     '#type' => 'select',
     '#title' => t('Year'),
     '#options' => $form_state['available_years'],
-    '#default_value' => 0,
+    '#default_value' => $form_state['selected_year'],
     //'#prefix' => '<div class = "cal-controls"><table><tr><td width = 90% align = right>',
     '#prefix' => '<div class = "cal-controls">',
     //'#suffix' => '</td>',
     //'#ajax' => array(
-    //  'callback' => 'ajax_test',
-    //  'wrapper' => 'ajax-wrapper',
-    //  'method' => 'replace',
-    //  'effect' => 'fade'
+      //'callback' => 'ajax_test',
+      //'wrapper' => 'ajax-wrapper',
+      //'method' => 'replace',
+      //'effect' => 'fade'
     //),
   );
 
@@ -810,7 +504,7 @@ function select_issue_year($form, &$form_state) {
     '#type' => 'button',
     '#executes_subit_callback' => FALSE,
     '#value' => t('Select'),
-    '#validate' => array('get_issues'),
+    /*'#validate' => array('get_issues'),*/
     //'#prefix' => '<td width = 10% align = right>',
     //'#suffix' => '</td></tr></table></div>'
     '#suffix' => '</div>'
@@ -830,21 +524,23 @@ function select_issue_year($form, &$form_state) {
   return $form;
 }
 
+
 function get_issues($form, &$form_state) {
 
-  //dpr($form);
+  //$form_state['year_selected'] = TRUE;
 
-  $form_state['year_selected'] = TRUE;
-
+  /*
   if($form_state['values']['op'] == "Show drop down list of issues")
     $form_state['view_choice'] = 1;
   else
     $form_state['view_choice'] = 2;
+  */
 
-
+  //$form_state['selected_year'] = $form['values']['issue_years'];
 }
 
-function get_issue($form, &$form_state) {
+/*
+function get_issue(&$form_state) {
 
   global $base_url;
 
@@ -852,3 +548,124 @@ function get_issue($form, &$form_state) {
   drupal_goto($base_url . "/islandora/object/" . $form_state['values']['issues']);
 
 }
+*/
+
+
+/**
+ * Gets all issues from the given year that the given newspaper owns.
+ *
+ * The results are ordered by their RELS-EXT dateIssued property.
+ * Older to newer.
+ *
+ * @param AbstractDatastream $object
+ *   The datastream containing MODS.
+ *
+ * @param string $issue_year
+ *   Year of issues to extract.
+ *
+ * @return array
+ *   An associative array in the form of:
+ *   - pid: The unique persistent identifier for the issue.
+ *     - pid: The unique persistent identifier for the issue.
+ *     - label: A descriptive label for the issue.
+ *     - sequence: The sequence number of the issue, starts at 1.
+ *     - issued: A DateTime object repersenting the date the issue was released.
+ */
+function islandora_newspaper_get_year_issues(AbstractObject $object, $issue_year) {
+//echo $issue_year;
+  $query = <<<EOQ
+PREFIX islandora-rels-ext: <http://islandora.ca/ontology/relsext#>
+PREFIX fedora-rels-ext: <info:fedora/fedora-system:def/relations-external#>
+#SELECT ?pid ?sequence ?label ?issued
+SELECT ?pid ?issued
+FROM <#ri>
+WHERE {
+  ?pid fedora-rels-ext:isMemberOf <info:fedora/{$object->id}> ;
+       <fedora-model:hasModel> <info:fedora/islandora:newspaperIssueCModel> ;
+       #<fedora-model:label> ?label ;
+       islandora-rels-ext:dateIssued ?issued . FILTER regex(str(?issued), "$issue_year")
+#OPTIONAL {
+#    ?pid islandora-rels-ext:isSequenceNumber ?sequence
+#  }
+}
+ORDER BY ?issued
+EOQ;
+  $results = $object->repository->ri->sparqlQuery($query);
+  // Map the results using a default Datetime for missing issued dates.
+  $map_results = function($o) {
+    try {
+      @$issued = new DateTime($o['issued']['value']);
+    }
+    catch (Exception $e) {
+      // Use the current time as a place holder.
+      $issued = new DateTime();
+      $msg  = 'Failed to get issued date from SPARQL query for @pid';
+      $vars = array('@pid' => $o['pid']['value']);
+      watchdog_exception('islandora_newspaper', $e, $msg, $vars, WATCHDOG_ERROR);
+    }
+    return array(
+      'pid' => $o['pid']['value'],
+      #'label' => $o['label']['value'],
+      #'sequence' => $o['sequence']['value'],
+      'issued' => $issued,
+    );
+  };
+  $issues = array_map($map_results, $results);
+  // Grab the PIDs...
+  $get_pid = function($o) {
+    return $o['pid'];
+  };
+  $pids = array_map($get_pid, $issues);
+  // Make the PIDs the keys.
+  return count($pids) ? array_combine($pids, $issues) : array();
+}
+
+function islandora_newspaper_get_solr_year_issues(AbstractObject $object, $issue_year) {
+  $solr_handler = variable_get('islandora_solr_request_handler', FALSE);
+  $path_parts = parse_url(variable_get('islandora_solr_url', 'localhost:8080/solr'));
+  $solr = new Apache_Solr_Service($path_parts['host'], $path_parts['port'], $path_parts['path'] . '/');
+  $solr->setCreateDocuments(0);
+
+  //echo "select year: " . $issue_year;
+
+  $parent = $solr->escape($object->id);
+  $cmodel = $solr->escape('islandora:newspaperIssueCModel');
+  $solr_query = "content_model_ms:$cmodel AND parent_pid:$parent AND RELS_EXT_dateIssued_literal_ms:$issue_year*";
+  $solr_params = array();
+  $solr_params['fl'][] = 'PID, RELS_EXT_dateIssued_literal_ms, fgs_label_s, mods_originInfo_dateIssued_dt';
+  $solr_params['sort'] = array('mods_originInfo_dateIssued_dt asc');
+
+
+  if ($solr_handler) {
+    $solr_params['qt'] = $solr_handler;
+  }
+  $namespaces_enforced = variable_get('islandora_namespace_restriction_enforced', FALSE);
+  if ($namespaces_enforced) {
+    $namespace_list = trim(variable_get('islandora_pids_allowed', ''));
+    if ($namespace_list) {
+      $namespaces = preg_split('/[,|\s]/', $namespace_list);
+      $namespace_array = array();
+      foreach (array_filter($namespaces) as $namespace) {
+        $namespace_array[] = 'PID:' . Apache_Solr_Service::escape($namespace) . '*';
+      }
+      $solr_params['fq'][] = implode(' OR ', $namespace_array);
+    }
+  }
+
+  try {
+    $method = 'GET';
+    $results = $solr->search($solr_query, 0, '100000', $solr_params, $method);
+  }
+  catch (Exception $e) {
+    watchdog('islandora_solutionpack_newspapers', 'Error getting solr results %e',
+      array('%e' => $e->getMessage()));
+  }
+  $solr_results = NULL;
+  if (!empty($results)) {
+    $solr_results = json_decode($results->getRawResponse(), TRUE);
+  }
+  return $solr_results;
+
+
+}
+
