@@ -1,149 +1,126 @@
-.year-cal-wrapper {
- /*border:1px solid red;*/
-  /*padding:1px;*/
-  /*position:relative;*/
-  /*margin:1px;*/
+/*
+*, *:before, *:after {
+  -moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box;
+}
+*/
+
+#ajax-wrapper, .year-cal-wrapper, .year-cal-row, .cal-block, .cal-row,
+.cal-row-block, .cal-title-block, .day-head-block, .blank-day-block, .day-issue-block,
+.day-no-issue-block,
+#ajax-wrapper, .year-cal-wrapper, .year-cal-row, .cal-block, .cal-row,
+.cal-row-block, .cal-title-block, .day-head-block, .blank-day-block, .day-issue-block,
+.day-no-issue-block:before, #ajax-wrapper, .year-cal-wrapper, .year-cal-row, .cal-block, .cal-row,
+.cal-row-block, .cal-title-block, .day-head-block, .blank-day-block, .day-issue-block,
+.day-no-issue-block:after {
+  -moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box;
+}
+
+.cal-controls {
+  float:right;
+}
+
+#ajax-wrapper {
+  /*-moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box;*/
+  /*border:1px solid blue;*/
+  margin-top:12px;
+  margin-bottom:12px;
   float:left;
- /* width:100%;*/
-  /*overflow:hidden;*/
+}
+
+.year-cal-wrapper {
+  /*-moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box;*/
+  /*border:1px solid red;*/
+  float:left;
 }
 
 .year-cal-row {
+  /*-moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box;*/
   /*border:1px dashed black;*/
-  /*width:100%;*/
-  /*padding:2px;*/
-  /*position:relative;*/
+  /*padding:1px;*/
   float:left;
-  /*margin:2px;*/
-  /*width:930px;*/
-  /*width:100%;*/
 }
 
 .cal-block {
-  /*border:1px solid black;*/
+  /*-moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box;*/
+  border:1px solid black;
   padding:1px;
-  /*position:relative;*/
   float:left;
+  width:24.5%;
+  min-width:260px;
   margin:2px;
-  /*width:227px;*/
-  /*width:100%;*/
-  /*background-color:#dddddd;*/
-  width:23%;
-  /*height:320px;*/
-
 }
 
 .cal-row {
-  /*border:1px solid orange;*/
-  /*padding:1px;
-  position:relative;
-  text-align:center;
-  margin:1px;
-  /*float:left;*/
+  /*-moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box;*/
   clear:both;
 }
 
 .cal-row-block {
-  /*border:1px solid #dddddd;*/
-  padding:1px;
-  /*position:relative;*/
-  text-align:center;
-  margin-left:1px;
+  /*-moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box;*/
+  /*border:1px solid red;*/
+  /*padding:1px;*/
   float:left;
-  width:97%;
-  /*display:block;*/
-  /*clear:both;*/
+  width:100%;
+  min-width:256px;
 }
 
 .cal-title-block {
+  /*-moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box;*/
   border:1px solid black;
-  /*padding-left:3px;*/
-  /*margin:1px;*/
-  width:99%;
+  width:100%;
   background-color:#dddddd;
   color:black;
-  /*position:relative;*/
   float:left;
   text-align:center;
-  /*margin-left:2px;*/
-
 }
 
 .day-head-block {
-  border:1px solid grey;
-  padding:5px;
-  margin:1px;
-  /*width:5%;*/
-  /*position:relative;*/
+  /*-moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box;*/
   float:left;
+  width:13.5%;
+  min-width:25px;
+  /*max-width:30px;*/
+  padding:2px;
+  margin:1px;
+
   text-align:center;
-  /*WAS 8.25*/
-  /*width:8.25%;*/
-  width:6.6%;
+  border:1px solid black;
 }
 
 .blank-day-block {
- border:1px solid grey;
-  /*position:relative;*/
+  /*-moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box;*/
   float:left;
-  padding:5px;
+  width:13.5%;
+  min-width:25px;
+  padding:2px;
   margin:1px;
-  /*width:5%;*/
-  /*position:relative;*/
 
   text-align:center;
-  width:6.6%;
-
+  border:1px solid black;
 }
 
 .day-issue-block {
-
-  border:1px solid black;
+  /*-moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box;*/
   float:left;
-  padding:5px;
+  width:13.5%;
+  min-width:25px;
+  padding:2px;
   margin:1px;
-  /*width:5%;*/
-  /*position:relative;*/
 
   text-align:center;
-  width:6.6%;
-  font:bold;
-
+  border:1px solid black;
 }
 
 .day-no-issue-block {
-
-  border:1px solid grey;
+  /*-moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box;*/
   float:left;
-  padding:5px;
+  width:13.5%;
+  min-width:25px;
+  padding:2px;
   margin:1px;
-  /*width:5%;*/
-  /*position:relative;*/
 
-  text-align:center;
-  width:6.6%;
   color: grey;
 
-
-}
-
-
-
-
-
-
-
-
-.cal-controls {
-
-  float:right;
-}
-
-.outside {
-  /*border:5px solid red;*/
-}
-
-.outter {
-  /*border: 3px solid blue;*/
-  /*width:100%;*/
+  text-align:center;
+  border:1px solid black;
 }

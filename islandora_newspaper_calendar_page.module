@@ -79,112 +79,82 @@ function islandora_newspaper_calendar_page_form($form, &$form_state, $object) {
 
     $form_state['available_years'] = $available_years;
     $form = select_issue_year($form, $form_state);
-  }
-  else {
-    $form['no_issues'] = array('#markup' => "Newspaper issues not found.");
-  }
 
 
 
+    $issues_solr = islandora_newspaper_get_solr_year_issues($object, $form_state['values']['issue_years']);
 
+    foreach($issues_solr['response']['docs'] as $key => $solr_data) {
 
-
-  // save object for ajax function
-  //$form_state['object'] = $object;
-
-
-
-/**** AJAX STARTS HERE ***/
-/*  $form['new_cal']['ajax-wrapper'] = array(
-    '#markup' =>"<br/><br/>",
-    '#prefix' => '<div id = "ajax-wrapper">',
-    '#suffix' => '</div>'
-  );
-*/
-  //$new_cal = "<br/><br/><div class = \"year-cal-wrapper\">
-  //      <div class = \"year-cal-row\">";
-
-
-
-  $form['new_cal']['ajax-wrapper'][] = array(
-    '#markup' =>'<br/><br/>
-      <div class = "year-cal-wrapper">
-        <div class = "year-cal-row">',
-    '#prefix' => '<div id = "ajax-wrapper">',
-    '#suffix' => '</div>'
-  );
-
-
-  $issues_solr = islandora_newspaper_get_solr_year_issues($object, $form_state['values']['issue_years']);
-
-  foreach($issues_solr['response']['docs'] as $key => $solr_data) {
-
-    // Add 5 hours to solr dateIssued result since dates close to different years (e.g. Jan 1) can be cast incorrectly
-    $solr_date = date("Y-m-d H:i:s", strtotime($solr_data['RELS_EXT_dateIssued_literal_ms'][0] . '+ 5 hours', $now = time()));
-    $solr_year = date("Y", strtotime($solr_date, $now = time()));
-    $solr_month = date("m", strtotime($solr_date, $now = time()));
-    $solr_day = date("d", strtotime($solr_date, $now = time()));
-    $newspaper_issue_dates[$solr_data['PID']] = $solr_year . "-" . $solr_month . "-" . $solr_day;
-  }
-
-  foreach($newspaper_issue_dates as $pid => $issue_date) {
-
-    $issue_year = date('Y', strtotime($issue_date));
-
-    // quick fix for query bringing back more than 1 year...  clean up if query is fixed
-    if(!isset($first_year))
-      $first_year = date('Y', strtotime($issue_date));
-
-    if($issue_year == $first_year) {
-
-      //$issue_year = date('Y', strtotime($issue_date));
-      $issue_month = date('n', strtotime($issue_date));
-      $issue_day = date('j', strtotime($issue_date));
-      $issue_pids[$issue_year][$issue_month][$issue_day] = $pid;
-    }
-  }
-
-
-
-
-
-
-
-
-  $year = $first_year;
-
-  for($ctr = 1; $ctr <= 12; $ctr++) {
-
-    $month = $ctr;
-
-    // Generate first day of the month.
-    $first_day = mktime(0,0,0,$month, 1, $year) ;
-
-    // Get month name.
-    $title = date('F', $first_day) ;
-
-    // Day of the week the first day of the month falls on.
-    $day_of_week = date('D', $first_day) ;
-
-    // Blank days occurring before first day.
-    switch($day_of_week){
-      case "Sun": $blank = 0; break;
-      case "Mon": $blank = 1; break;
-      case "Tue": $blank = 2; break;
-      case "Wed": $blank = 3; break;
-      case "Thu": $blank = 4; break;
-      case "Fri": $blank = 5; break;
-      case "Sat": $blank = 6; break;
+      // Add 5 hours to solr dateIssued result since dates close to different years (e.g. Jan 1) can be cast incorrectly
+      $solr_date = date("Y-m-d H:i:s", strtotime($solr_data['RELS_EXT_dateIssued_literal_ms'][0] . '+ 5 hours', $now = time()));
+      $solr_year = date("Y", strtotime($solr_date, $now = time()));
+      $solr_month = date("m", strtotime($solr_date, $now = time()));
+      $solr_day = date("d", strtotime($solr_date, $now = time()));
+      $newspaper_issue_dates[$solr_data['PID']] = $solr_year . "-" . $solr_month . "-" . $solr_day;
     }
 
-    $days_in_month = cal_days_in_month(0, $month, $year) ;
+    foreach($newspaper_issue_dates as $pid => $issue_date) {
 
-    // Build CSS table.
-    $new_cal = '<div class = "cal-block">
+      $issue_year = date('Y', strtotime($issue_date));
+
+      // quick fix for query bringing back more than 1 year...  clean up if query is fixed
+      if(!isset($first_year))
+        $first_year = date('Y', strtotime($issue_date));
+
+      if($issue_year == $first_year) {
+
+        //$issue_year = date('Y', strtotime($issue_date));
+        $issue_month = date('n', strtotime($issue_date));
+        $issue_day = date('j', strtotime($issue_date));
+        $issue_pids[$issue_year][$issue_month][$issue_day] = $pid;
+      }
+    }
+
+
+
+
+
+    $form['new_cal']['ajax-wrapper']['outter-block'] = array(
+      '#markup' =>'<div class = "year-cal-wrapper"><div class = "year-cal-row">',
+      '#prefix' => '<div id = "ajax-wrapper">',
+      //'#suffix' => '</div>'
+    );
+
+    $year = $first_year;
+
+    for($ctr = 1; $ctr <= 12; $ctr++) {
+
+      $month = $ctr;
+
+      // Generate first day of the month.
+      $first_day = mktime(0,0,0,$month, 1, $year) ;
+
+      // Get month name.
+      $title = date('F', $first_day) ;
+
+      // Day of the week the first day of the month falls on.
+      $day_of_week = date('D', $first_day) ;
+
+      // Blank days occurring before first day.
+      switch($day_of_week){
+        case "Sun": $blank = 0; break;
+        case "Mon": $blank = 1; break;
+        case "Tue": $blank = 2; break;
+        case "Wed": $blank = 3; break;
+        case "Thu": $blank = 4; break;
+        case "Fri": $blank = 5; break;
+        case "Sat": $blank = 6; break;
+      }
+
+      $days_in_month = cal_days_in_month(0, $month, $year) ;
+
+      // Build CSS table.
+      $new_cal = '<div class = "cal-block">
                   <div class = "cal-row">
                     <div class = "cal-row-block">
                       <div class = "cal-title-block">'
-                        . $title . " " . $year . '
+        . $title . " " . $year . '
                       </div>
                     </div>
                   </div>
@@ -200,53 +170,84 @@ function islandora_newspaper_calendar_page_form($form, &$form_state, $object) {
                     </div>
                   </div>';
 
-    $new_cal .= '<div class = "cal-row"><div class = "cal-row-block">';
+      $new_cal .= '<div class = "cal-row"><div class = "cal-row-block">';
 
-    $day_count = 1;
-    while ( $blank > 0 ) {
-      $new_cal .= '<div class = "blank-day-block">&nbsp;</div>';
-      $blank = $blank-1;
-      $day_count++;
-    }
+      $day_count = 1;
+      while ( $blank > 0 ) {
+        $new_cal .= '<div class = "blank-day-block">&nbsp;</div>';
+        $blank = $blank-1;
+        $day_count++;
+      }
 
-    $day_num = 1;
-    while ( $day_num <= $days_in_month ) {
-      if(array_key_exists($month, $issue_pids[$year]))
-        if(array_key_exists($day_num, $issue_pids[$year][$month]))
-          $new_cal .= '<div class = "day-issue-block"><a href=' . $base_url . '/islandora/object/'
-                        . $issue_pids[$year][$month][$day_num] . '>' . $day_num . '</a></div>';
+      $day_num = 1;
+      while ( $day_num <= $days_in_month ) {
+        if(array_key_exists($month, $issue_pids[$year]))
+          if(array_key_exists($day_num, $issue_pids[$year][$month]))
+            $new_cal .= '<div class = "day-issue-block"><a href=' . $base_url . '/islandora/object/'
+              . $issue_pids[$year][$month][$day_num] . '>' . $day_num . '</a></div>';
+          else
+            $new_cal .= '<div class = "day-no-issue-block">' .  $day_num . '</div>';
         else
           $new_cal .= '<div class = "day-no-issue-block">' .  $day_num . '</div>';
-      else
-        $new_cal .= '<div class = "day-no-issue-block">' .  $day_num . '</div>';
 
-      $day_num++;
-      $day_count++;
+        $day_count++;
 
-      // Start new row every week.
-      if ($day_count > 7) {
-        $new_cal .= '</div></div><div class = "cal-row"><div class = "cal-row-block">';
-        $day_count = 1;
+        // Start new row every week.
+        if ($day_count > 7 AND $day_num != $days_in_month) {
+          $new_cal .= '</div></div><div class = "cal-row"><div class = "cal-row-block">';
+          $day_count = 1;
+        }
+
+        $day_num++;
       }
+
+      // Add remaining blank days.
+      while ( $day_count >1 && $day_count <=7 ) {
+        $new_cal .= '<div class = "blank-day-block">&nbsp;</div>';
+        $day_count++;
+      }
+
+      if($ctr == 4 OR $ctr == 8)
+        $new_cal .= '</div></div></div></div><div class = "year-cal-row">';
+      //$new_cal .= '</div></div></div></div>';
+      elseif($ctr == 12)
+        $new_cal .= '</div></div></div></div>';
+      else
+        $new_cal .= '</div></div></div>';
+      //$new_cal .= '</div></div></div></div>';
+
+      $form['new_cal']['ajax-wrapper']['calendar' . $ctr] = array('#markup' => $new_cal);
     }
 
-    // Add remaining blank days.
-    while ( $day_count >1 && $day_count <=7 ) {
-      $new_cal .= '<div class = "blank-day-block">&nbsp;</div>';
-      $day_count++;
-    }
+    // was 3 /divs
+    $form['new_cal']['ajax-wrapper']['end-outter-block'] = array('#markup' => '</div></div>');
 
-    if($ctr == 4 OR $ctr == 8)
-      $new_cal .= '</div></div></div><div class = "year-cal-row">';
-    elseif($ctr == 12)
-      $new_cal .= '</div></div></div></div>';
-    else
-      $new_cal .= '</div></div></div>';
 
-    $form['new_cal']['ajax-wrapper'][] = array('#markup' => $new_cal);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  }
+  else {
+    $form['no_issues'] = array('#markup' => "Issues for this newspaper are not yet available.");
   }
 
-  $form['new_cal']['ajax-wrapper'][] = array('#markup' => '</div></div></div>');
+
+
 
   return $form;
 }
