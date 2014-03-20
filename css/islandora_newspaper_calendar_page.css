@@ -4,12 +4,15 @@
 }
 */
 
-#ajax-wrapper, .year-cal-wrapper, .year-cal-row, .cal-block, .cal-row,
+#ajax-wrapper, .year-cal-wrapper, .year-cal-row, .cal-block-outter, .cal-block, .cal-row,
 .cal-row-block, .cal-title-block, .day-head-block, .blank-day-block, .day-issue-block,
 .day-no-issue-block,
-#ajax-wrapper, .year-cal-wrapper, .year-cal-row, .cal-block, .cal-row,
+
+#ajax-wrapper, .year-cal-wrapper, .year-cal-row, .cal-block-outter, .cal-block, .cal-row,
 .cal-row-block, .cal-title-block, .day-head-block, .blank-day-block, .day-issue-block,
-.day-no-issue-block:before, #ajax-wrapper, .year-cal-wrapper, .year-cal-row, .cal-block, .cal-row,
+.day-no-issue-block:before,
+
+#ajax-wrapper, .year-cal-wrapper, .year-cal-row, .cal-block-outter, .cal-block, .cal-row,
 .cal-row-block, .cal-title-block, .day-head-block, .blank-day-block, .day-issue-block,
 .day-no-issue-block:after {
   -moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box;
@@ -20,7 +23,6 @@
 }
 
 #ajax-wrapper {
-  /*-moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box;*/
   /*border:1px solid blue;*/
   margin-top:12px;
   margin-bottom:12px;
@@ -28,35 +30,43 @@
 }
 
 .year-cal-wrapper {
-  /*-moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box;*/
   /*border:1px solid red;*/
   float:left;
 }
 
 .year-cal-row {
-  /*-moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box;*/
-  /*border:1px dashed black;*/
+  /*border:1px dashed green;*/
   /*padding:1px;*/
+  /*float:left;*/
+  /*clear:both;*/
+  /*height:17em;*/
+}
+
+/* Added for height setting, so actual .cal-block can still be bordered around what's there */
+.cal-block-outter {
   float:left;
+  /*border: 1px solid red;*/
+  /*height: 255px;*/
+  height:17em;
+
+  max-width:24%;       /*24.5*/
+  min-width:260px;
+  /*min-width:240px;*/
+  margin:5px;
+
 }
 
 .cal-block {
-  /*-moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box;*/
-  border:1px solid black;
+  border:2px solid black;
   padding:1px;
   float:left;
-  width:24.5%;
-  min-width:260px;
-  margin:2px;
 }
 
 .cal-row {
-  /*-moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box;*/
   clear:both;
 }
 
 .cal-row-block {
-  /*-moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box;*/
   /*border:1px solid red;*/
   /*padding:1px;*/
   float:left;
@@ -65,7 +75,6 @@
 }
 
 .cal-title-block {
-  /*-moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box;*/
   border:1px solid black;
   width:100%;
   background-color:#dddddd;
@@ -75,7 +84,6 @@
 }
 
 .day-head-block {
-  /*-moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box;*/
   float:left;
   width:13.5%;
   min-width:25px;
@@ -88,7 +96,6 @@
 }
 
 .blank-day-block {
-  /*-moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box;*/
   float:left;
   width:13.5%;
   min-width:25px;
@@ -100,7 +107,6 @@
 }
 
 .day-issue-block {
-  /*-moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box;*/
   float:left;
   width:13.5%;
   min-width:25px;
@@ -112,7 +118,6 @@
 }
 
 .day-no-issue-block {
-  /*-moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box;*/
   float:left;
   width:13.5%;
   min-width:25px;
