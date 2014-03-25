@@ -64,6 +64,7 @@ function islandora_newspaper_calendar_page_form($form, &$form_state, $object) {
 
   global $base_url;
   module_load_include('inc', 'islandora_newspaper', 'includes/utilities');
+  drupal_add_js(drupal_get_path('module', 'islandora_newspaper_calendar_page') . '/js/modernizr.js');
   drupal_set_title("Newspaper Issues Calendar");
 
   $all_issues = islandora_newspaper_get_issues($object);
@@ -266,23 +267,26 @@ function select_issue_year($form, &$form_state) {
     '#default_value' => $form_state['selected_year'],
     '#prefix' => '<div class = "cal-controls">',
     //'#suffix' => '</div>',
+
     '#ajax' => array(
       'callback' => 'islandora_newspaper_calendar_page_ajax_reload',
       'wrapper' => 'ajax-wrapper',
       'method' => 'replace',
       'effect' => 'fade'
     ),
+
   );
 
   // SUBMIT BUTTON
-  //$form['container']['calendar_button'] = array(
-  //  '#type' => 'button',
-  //  '#executes_subit_callback' => FALSE,
-  //  '#value' => t('Select'),
-    /*'#validate' => array('get_issues'),*/
-  //  '#suffix' => '</div>'
-  //);
-
+/*
+  $form['container']['calendar_button'] = array(
+    '#type' => 'button',
+    '#executes_subit_callback' => FALSE,
+    '#value' => t('Select'),
+   //'#validate' => array('get_issues'),
+   '#suffix' => '</div>'
+ );
+*/
   return $form;
 }
 
