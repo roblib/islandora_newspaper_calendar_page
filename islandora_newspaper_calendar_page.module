@@ -67,10 +67,6 @@ function islandora_newspaper_calendar_page_form($form, &$form_state, $object, $i
   global $base_url;
   drupal_add_js(drupal_get_path('module', 'islandora_newspaper_calendar_page') . '/js/islandora_newspaper_calendar_page.js');
   module_load_include('inc', 'islandora_newspaper', 'includes/utilities');
-  drupal_add_js(drupal_get_path('module', 'islandora_newspaper_calendar_page') . '/js/modernizr.js');
-  drupal_add_js(drupal_get_path('module', 'islandora_newspaper_calendar_page') . '/js/islandora_newspaper_calendar_page.js');
-  module_load_include('inc', 'islandora_newspaper', 'includes/utilities');
-  drupal_add_js(drupal_get_path('module', 'islandora_newspaper_calendar_page') . '/js/modernizr.js');
   drupal_set_title("Newspaper Issues Calendar");
 
   $_REQUEST['year_options'] = islandora_newspaper_calendar_page_get_years($object);
