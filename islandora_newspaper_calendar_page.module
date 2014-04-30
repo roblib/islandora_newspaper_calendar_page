@@ -100,10 +100,12 @@ function islandora_newspaper_calendar_page_form($form, &$form_state, $object, $i
     }
 
     $form['new_cal']['year-select'] = array(
-      '#markup' => '<select id="date-selectbox">' . '<option value=' . $issue_year . '>' . $issue_year
-                    . '</option>' . $_REQUEST['year_options'],
+      '#type' => 'select',
+      '#title' => t('Year'),
+      '#options' => $_REQUEST['year_options'],
+      '#default_value' => $issue_year,
       '#prefix' => '<div id = "date-change">',
-      '#suffix' => '</select></div>'
+      '#suffix' => '</div>'
     );
 
     $form['new_cal']['ajax-wrapper']['outter-block'] = array(
@@ -237,7 +239,7 @@ function islandora_newspaper_calendar_page_get_years($object) {
 
   $all_issues = islandora_newspaper_get_issues($object);
   $all_grouped_issues = islandora_newspaper_group_issues($all_issues);
-  $year_options = "";
+  $year_options = array();
 
   foreach($all_grouped_issues as $year => $month_data) {
     // Default to earliest newspaper issue year found.
@@ -245,7 +247,7 @@ function islandora_newspaper_calendar_page_get_years($object) {
       $_REQUEST['year'] = $year;
     }
 
-    $year_options .= ("<option value=" . $year . ">$year</option>");
+    $year_options[$year] = $year;
   }
 
   return $year_options;

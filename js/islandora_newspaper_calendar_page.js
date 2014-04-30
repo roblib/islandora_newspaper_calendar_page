@@ -1,6 +1,6 @@
 Drupal.behaviors.islandora_newspaper_calendar_page = {
   attach: function(context, settings) {
-    jQuery('#date-selectbox').change(function() {
+    jQuery('#date-change').change(function() {
       var val = jQuery(this).find('option:selected').attr('value');
       var path = window.location.href;
       var loc = path.lastIndexOf('?year=');
