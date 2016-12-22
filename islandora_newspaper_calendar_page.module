@@ -6,9 +6,9 @@
  * @param string $issue_year
  * @return array
  */
-function islandora_newspaper_calendar_page_islandora_newspapercmodel_islandora_view_object(AbstractObject $object, $issue_year = NULL) {
+function islandora_newspaper_calendar_page_view_object($vars, $issue_year = NULL) {
   global $_REQUEST;
-
+  $object = $vars['object'];
   // Default to earliest newspaper issue year found.
   if(!isset($_REQUEST['year'])) {
     $_REQUEST['year_options'] = islandora_newspaper_calendar_page_get_years($object);
@@ -17,6 +17,21 @@ function islandora_newspaper_calendar_page_islandora_newspapercmodel_islandora_v
   $output = drupal_get_form('islandora_newspaper_calendar_page_form', $object, $_REQUEST['year']);
   return drupal_render($output);
 }
+
+/**
+ * Implements hook_theme_registry_alter().
+ */
+function islandora_newspaper_calendar_page_theme_registry_alter(&$theme_registry) {
+  if (isset($theme_registry['islandora_newspaper'])) {
+    $theme_registry['islandora_newspaper']['function'] = 'islandora_newspaper_calendar_page_view_object';
+    unset($theme_registry['islandora_newspaper']['preprocess functions']);
+    unset($theme_registry['islandora_newspaper']['process functions']);
+    unset($theme_registry['islandora_newspaper']['file']);
+    unset($theme_registry['islandora_newspaper']['includes']);
+    unset($theme_registry['islandora_newspaper']['template']);
+  }
+}
+
 
 /**
  * Determines whether or not to show this modules tab.
@@ -240,7 +255,7 @@ function islandora_newspaper_calendar_page_get_years($object) {
   $all_issues = islandora_newspaper_get_issues($object);
   $all_grouped_issues = islandora_newspaper_group_issues($all_issues);
   $year_options = array();
-
+  ksort($all_grouped_issues);
   foreach($all_grouped_issues as $year => $month_data) {
     // Default to earliest newspaper issue year found.
     if(!isset($_REQUEST['year'])) {
@@ -312,6 +327,5 @@ function islandora_newspaper_get_solr_year_issues(AbstractObject $object, $issue
   if (!empty($results)) {
     $solr_results = json_decode($results->getRawResponse(), TRUE);
   }
-
   return $solr_results;
 }
