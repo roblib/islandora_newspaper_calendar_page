@@ -300,10 +300,12 @@ function islandora_newspaper_get_solr_year_issues(AbstractObject $object, $issue
   $end_date = $issue_year . "-12-31T23:59:59Z";
   $parent = $solr->escape($object->id);
   $cmodel = $solr->escape('islandora:newspaperIssueCModel');
-  $solr_query = "({$cmodel_solr_field}:{$cmodel} OR {$cmodel_solr_field}:info\:fedora/{$cmodel}) AND {$parent_field}:{$parent} AND {$date_field}:[{$start_date} TO {$end_date}]";
+  $solr_query = "({$cmodel_solr_field}:{$cmodel} OR {$cmodel_solr_field}:info\:fedora/{$cmodel})";
+  $solr_query .= " AND ({$parent_field}:{$parent} OR {$parent_field}:info\:fedora/{$parent})";
+  $solr_query .= " AND {$date_field}:[{$start_date} TO {$end_date}]";
   $solr_params = array();
   $solr_params['fl'][] = 'PID, RELS_EXT_dateIssued_literal_ms, mods_originInfo_dateIssued_dt';
-  $solr_params['sort'] = array('mods_originInfo_dateIssued_dt asc');
+  $solr_params['sort'] = array("{$date_field} asc");
 
   if ($solr_handler) {
     $solr_params['qt'] = $solr_handler;
