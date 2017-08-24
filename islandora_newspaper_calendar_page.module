@@ -1,5 +1,21 @@
 <?php
 /**
+ * Implements hook_menu().
+ */
+function islandora_newspaper_calendar_page_menu() {
+  $items['admin/islandora/tools/newspaper-calendar'] = array(
+    'title' => 'Newspaper Calendar Page',
+    'description' => 'Configure the Islandora Newspaper Calendar page settings.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('islandora_newspaper_page_admin'),
+    'access arguments' => array('administer site configuration'),
+    'file' => 'includes/admin.form.inc',
+    'type' => MENU_NORMAL_ITEM,
+  );
+  return $items;
+}
+
+/**
  * Implements hook_CMODEL_PID_islandora_view_object().
  *
  * @param AbstractObject $object
@@ -277,9 +293,14 @@ function islandora_newspaper_get_solr_year_issues(AbstractObject $object, $issue
   $solr = new Apache_Solr_Service($path_parts['host'], $path_parts['port'], $path_parts['path'] . '/');
   $solr->setCreateDocuments(0);
 
+  $cmodel_solr_field = variable_get('islandora_solr_content_model_field', 'content_model_ms');
+  $parent_field = variable_get('islandora_solr_member_of_field', 'RELS_EXT_isMemberOf_uri_mt');
+  $date_field = variable_get('islandora_newspaper_calendar_page_date_field', 'mods_originInfo_dateIssued_dt');
+  $start_date = $issue_year . "-00-00T00:00:00Z";
+  $end_date = $issue_year . "-12-31T23:59:59Z";
   $parent = $solr->escape($object->id);
   $cmodel = $solr->escape('islandora:newspaperIssueCModel');
-  $solr_query = "content_model_ms:$cmodel AND parent_pid:$parent AND RELS_EXT_dateIssued_literal_ms:$issue_year*";
+  $solr_query = "({$cmodel_solr_field}:{$cmodel} OR {$cmodel_solr_field}:info\:fedora/{$cmodel}) AND {$parent_field}:{$parent} AND {$date_field}:[{$start_date} TO {$end_date}]";
   $solr_params = array();
   $solr_params['fl'][] = 'PID, RELS_EXT_dateIssued_literal_ms, mods_originInfo_dateIssued_dt';
   $solr_params['sort'] = array('mods_originInfo_dateIssued_dt asc');
@@ -292,6 +313,7 @@ function islandora_newspaper_get_solr_year_issues(AbstractObject $object, $issue
     $namespace_list = trim(variable_get('islandora_pids_allowed', ''));
     if ($namespace_list) {
       $namespaces = preg_split('/[,|\s]/', $namespace_list);
+      $namespaces[] = 'islandora:';
       $namespace_array = array();
       foreach (array_filter($namespaces) as $namespace) {
         $namespace_array[] = 'PID:' . Apache_Solr_Service::escape($namespace) . '*';
