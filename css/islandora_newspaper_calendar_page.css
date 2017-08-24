@@ -22,6 +22,9 @@
   float:left;
 }
 
+#edit-year-select {
+  padding-right: 20px;
+}
 .year-cal-wrapper {
   float:left;
 }
