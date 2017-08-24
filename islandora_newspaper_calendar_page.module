@@ -1,19 +1,15 @@
 <?php
+
 /**
  * Implements hook_CMODEL_PID_islandora_view_object().
- *
- * @param AbstractObject $object
- * @param string $issue_year
- * @return array
  */
-function islandora_newspaper_calendar_page_view_object($vars, $issue_year = NULL) {
+function islandora_newspaper_calendar_page_view_object($vars) {
   global $_REQUEST;
   $object = $vars['object'];
   // Default to earliest newspaper issue year found.
-  if(!isset($_REQUEST['year'])) {
+  if (!isset($_REQUEST['year'])) {
     $_REQUEST['year_options'] = islandora_newspaper_calendar_page_get_years($object);
   }
-
   $output = drupal_get_form('islandora_newspaper_calendar_page_form', $object, $_REQUEST['year']);
   return drupal_render($output);
 }
@@ -36,11 +32,13 @@ function islandora_newspaper_calendar_page_theme_registry_alter(&$theme_registry
 /**
  * Determines whether or not to show this modules tab.
  *
- * @global object $user
  * @param FedoraObject $fedora_object
- * @return boolean
+ *   The islandora object.
+ *
+ * @return bool
+ *   Returns TRUE if the page should be viewed, FALSE otherwise.
  */
-function islandora_newspaper_calendar_page_access($fedora_object) {
+function islandora_newspaper_calendar_page_access(FedoraObject $fedora_object) {
   if (!isset($fedora_object)) {
     return FALSE;
   }
@@ -48,7 +46,7 @@ function islandora_newspaper_calendar_page_access($fedora_object) {
   $models = $fedora_object->models;
 
   // Show tab if MODS datastream exists and has newspaperCModel relationship.
-  if (isset($fedora_object['MODS']) AND in_array("islandora:newspaperCModel", $models, TRUE)) {
+  if (isset($fedora_object['MODS']) and in_array("islandora:newspaperCModel", $models, TRUE)) {
     return TRUE;
   }
 
@@ -59,22 +57,20 @@ function islandora_newspaper_calendar_page_access($fedora_object) {
  * The newspaper calendar page view.
  *
  * @param FedoraObject $object
+ *   The islandora object.
  * @param string $issue_year
- * @return array
+ *   The year requested.
+ *
+ * @return string
+ *   The rendered output.
  */
-function islandora_newspaper_calendar_page_view($object, $issue_year = NULL) {
+function islandora_newspaper_calendar_page_view(FedoraObject $object, $issue_year = NULL) {
   $output = drupal_get_form('islandora_newspaper_calendar_page_form', $object, $issue_year);
   return drupal_render($output);
 }
 
 /**
  * The newspaper calendar page view.
- *
- * @param array $form
- * @param array $form_state
- * @param FedoraObject $object
- * @param string $issue_year
- * @return array $form
  */
 function islandora_newspaper_calendar_page_form($form, &$form_state, $object, $issue_year) {
 
@@ -86,11 +82,11 @@ function islandora_newspaper_calendar_page_form($form, &$form_state, $object, $i
 
   $_REQUEST['year_options'] = islandora_newspaper_calendar_page_get_years($object);
   $issues_solr = islandora_newspaper_get_solr_year_issues($object, $issue_year);
-
-  if($issues_solr['response']['numFound']) {
-    foreach($issues_solr['response']['docs'] as $key => $solr_data) {
-
-      // Add 5 hours to solr dateIssued result since dates close to different years (e.g. Jan 1) can be cast incorrectly
+  $newspaper_issue_dates = array();
+  if ($issues_solr['response']['numFound']) {
+    foreach ($issues_solr['response']['docs'] as $key => $solr_data) {
+      // Add 5 hours to solr dateIssued result since dates close to different
+      // years (e.g. Jan 1) can be cast incorrectly.
       $solr_date = date("Y-m-d H:i:s", strtotime($solr_data['RELS_EXT_dateIssued_literal_ms'][0] . '+ 5 hours', $now = time()));
       $solr_year = date("Y", strtotime($solr_date, $now = time()));
       $solr_month = date("m", strtotime($solr_date, $now = time()));
@@ -98,16 +94,15 @@ function islandora_newspaper_calendar_page_form($form, &$form_state, $object, $i
       $newspaper_issue_dates[$solr_data['PID']] = $solr_year . "-" . $solr_month . "-" . $solr_day;
     }
 
-    foreach($newspaper_issue_dates as $pid => $issue_date) {
-
+    foreach ($newspaper_issue_dates as $pid => $issue_date) {
       $issue_year = date('Y', strtotime($issue_date));
 
       // Quick fix for query bringing back more than 1 year.
-      if(!isset($first_year)) {
+      if (!isset($first_year)) {
         $first_year = date('Y', strtotime($issue_date));
       }
 
-      if($issue_year == $first_year) {
+      if ($issue_year == $first_year) {
         $issue_month = date('n', strtotime($issue_date));
         $issue_day = date('j', strtotime($issue_date));
         $issue_pids[$issue_year][$issue_month][$issue_day] = $pid;
@@ -120,41 +115,58 @@ function islandora_newspaper_calendar_page_form($form, &$form_state, $object, $i
       '#options' => $_REQUEST['year_options'],
       '#default_value' => $issue_year,
       '#prefix' => '<div id = "date-change">',
-      '#suffix' => '</div>'
+      '#suffix' => '</div>',
     );
 
     $form['new_cal']['ajax-wrapper']['outter-block'] = array(
-      '#markup' =>'<div class = "year-cal-wrapper"><div class = "year-cal-row">',
+      '#markup' => '<div class = "year-cal-wrapper"><div class = "year-cal-row">',
       '#prefix' => '<div id = "ajax-wrapper">',
     );
 
     $year = $first_year;
 
-    for($ctr = 1; $ctr <= 12; $ctr++) {
+    for ($ctr = 1; $ctr <= 12; $ctr++) {
 
       $month = $ctr;
 
       // Generate first day of the month.
-      $first_day = mktime(0,0,0,$month, 1, $year) ;
+      $first_day = mktime(0, 0, 0, $month, 1, $year);
 
       // Get month name.
-      $title = date('F', $first_day) ;
+      $title = date('F', $first_day);
 
       // Day of the week the first day of the month falls on.
-      $day_of_week = date('D', $first_day) ;
+      $day_of_week = date('D', $first_day);
 
       // Blank days occurring before first day.
-      switch($day_of_week){
-        case "Sun": $blank = 0; break;
-        case "Mon": $blank = 1; break;
-        case "Tue": $blank = 2; break;
-        case "Wed": $blank = 3; break;
-        case "Thu": $blank = 4; break;
-        case "Fri": $blank = 5; break;
-        case "Sat": $blank = 6; break;
+      switch ($day_of_week) {
+        case "Sun": $blank = 0;
+          break;
+
+        case "Mon": $blank = 1;
+          break;
+
+        case "Tue": $blank = 2;
+          break;
+
+        case "Wed": $blank = 3;
+          break;
+
+        case "Thu": $blank = 4;
+          break;
+
+        case "Fri": $blank = 5;
+          break;
+
+        case "Sat": $blank = 6;
+          break;
+
+        default:
+          $blank = 0;
+          break;
       }
 
-      $days_in_month = cal_days_in_month(0, $month, $year) ;
+      $days_in_month = cal_days_in_month(0, $month, $year);
 
       // Build calendar.
       $new_cal = '<div class = "cal-block-outter">
@@ -181,31 +193,31 @@ function islandora_newspaper_calendar_page_form($form, &$form_state, $object, $i
       $new_cal .= '<div class = "cal-row"><div class = "cal-row-block">';
 
       $day_count = 1;
-      while ( $blank > 0 ) {
+      while ($blank > 0) {
         $new_cal .= '<div class = "blank-day-block">&nbsp;</div>';
         $blank = $blank-1;
         $day_count++;
       }
 
       $day_num = 1;
-      while ( $day_num <= $days_in_month ) {
-        if(array_key_exists($month, $issue_pids[$year])) {
-          if(array_key_exists($day_num, $issue_pids[$year][$month])) {
+      while ($day_num <= $days_in_month) {
+        if (array_key_exists($month, $issue_pids[$year])) {
+          if (array_key_exists($day_num, $issue_pids[$year][$month])) {
             $new_cal .= '<div class = "day-issue-block"><a href=' . $base_url . '/islandora/object/'
               . $issue_pids[$year][$month][$day_num] . '>' . $day_num . '</a></div>';
           }
           else {
-            $new_cal .= '<div class = "day-no-issue-block">' .  $day_num . '</div>';
+            $new_cal .= '<div class = "day-no-issue-block">' . $day_num . '</div>';
           }
         }
         else {
-          $new_cal .= '<div class = "day-no-issue-block">' .  $day_num . '</div>';
+          $new_cal .= '<div class = "day-no-issue-block">' . $day_num . '</div>';
         }
 
         $day_count++;
 
         // Start new row every week.
-        if ($day_count > 7 AND $day_num != $days_in_month) {
+        if ($day_count > 7 and $day_num != $days_in_month) {
           $new_cal .= '</div></div><div class = "cal-row"><div class = "cal-row-block">';
           $day_count = 1;
         }
@@ -214,15 +226,15 @@ function islandora_newspaper_calendar_page_form($form, &$form_state, $object, $i
       }
 
       // Add remaining blank days.
-      while ( $day_count >1 && $day_count <=7 ) {
+      while ($day_count > 1 && $day_count <= 7) {
         $new_cal .= '<div class = "blank-day-block">&nbsp;</div>';
         $day_count++;
       }
 
-      if($ctr == 4 OR $ctr == 8) {
+      if ($ctr == 4 or $ctr == 8) {
         $new_cal .= '</div></div></div></div></div><div class = "year-cal-row">';
       }
-      elseif($ctr == 12) {
+      elseif ($ctr == 12) {
         $new_cal .= '</div></div></div></div></div>';
       }
       else {
@@ -242,12 +254,14 @@ function islandora_newspaper_calendar_page_form($form, &$form_state, $object, $i
 }
 
 /**
- * Gets all available newspaper issue years and sets default year to earliest year found.
+ * Gets all available newspaper issue years and sets default  to earliest.
  *
  * @param AbstractObject $object
+ *   The islandora newspaper object.
+ *
  * @return string $year_options
  */
-function islandora_newspaper_calendar_page_get_years($object) {
+function islandora_newspaper_calendar_page_get_years(AbstractObject $object) {
 
   global $_REQUEST;
   module_load_include('inc', 'islandora_newspaper', 'includes/utilities');
@@ -256,9 +270,9 @@ function islandora_newspaper_calendar_page_get_years($object) {
   $all_grouped_issues = islandora_newspaper_group_issues($all_issues);
   $year_options = array();
   ksort($all_grouped_issues);
-  foreach($all_grouped_issues as $year => $month_data) {
+  foreach ($all_grouped_issues as $year => $month_data) {
     // Default to earliest newspaper issue year found.
-    if(!isset($_REQUEST['year'])) {
+    if (!isset($_REQUEST['year'])) {
       $_REQUEST['year'] = $year;
     }
 
@@ -267,6 +281,7 @@ function islandora_newspaper_calendar_page_get_years($object) {
 
   return $year_options;
 }
+
 /**
  * Gets all issues from the given year that the given newspaper owns.
  *
