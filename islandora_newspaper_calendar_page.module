@@ -294,14 +294,15 @@ function islandora_newspaper_get_solr_year_issues(AbstractObject $object, $issue
   $solr->setCreateDocuments(0);
 
   $cmodel_solr_field = variable_get('islandora_solr_content_model_field', 'content_model_ms');
-  $parent_field = variable_get('islandora_solr_member_of_field', 'RELS_EXT_isMemberOf_uri_mt');
+  $parent_field = variable_get('islandora_solr_member_of_field', 'RELS_EXT_isMemberOf_uri_ms');
+  $parent_collection_field = variable_get('islandora_solr_member_of_collection_field', 'RELS_EXT_isMemberOfCollection_uri_ms');
   $date_field = variable_get('islandora_newspaper_calendar_page_date_field', 'mods_originInfo_dateIssued_dt');
   $start_date = $issue_year . "-00-00T00:00:00Z";
   $end_date = $issue_year . "-12-31T23:59:59Z";
   $parent = $solr->escape($object->id);
   $cmodel = $solr->escape('islandora:newspaperIssueCModel');
   $solr_query = "({$cmodel_solr_field}:{$cmodel} OR {$cmodel_solr_field}:info\:fedora/{$cmodel})";
-  $solr_query .= " AND ({$parent_field}:{$parent} OR {$parent_field}:info\:fedora/{$parent})";
+  $solr_query .= " AND ({$parent_field}:{$parent} OR {$parent_field}:info\:fedora/{$parent} OR {$parent_collection_field}:info\:fedora/{$parent})";
   $solr_query .= " AND {$date_field}:[{$start_date} TO {$end_date}]";
   $solr_params = array();
   $solr_params['fl'][] = 'PID, RELS_EXT_dateIssued_literal_ms, mods_originInfo_dateIssued_dt';
