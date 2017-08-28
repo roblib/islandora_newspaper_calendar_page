@@ -327,7 +327,7 @@ function islandora_newspaper_get_solr_year_issues(AbstractObject $object, $issue
   $parent_field = variable_get('islandora_solr_member_of_field', 'RELS_EXT_isMemberOf_uri_ms');
   $parent_collection_field = variable_get('islandora_solr_member_of_collection_field', 'RELS_EXT_isMemberOfCollection_uri_ms');
   $date_field = variable_get('islandora_newspaper_calendar_page_date_field', 'mods_originInfo_dateIssued_dt');
-  $start_date = $issue_year . "-00-00T00:00:00Z";
+  $start_date = $issue_year . "-01-01T00:00:00Z";
   $end_date = $issue_year . "-12-31T23:59:59Z";
   $parent = $solr->escape($object->id);
   $cmodel = $solr->escape('islandora:newspaperIssueCModel');
